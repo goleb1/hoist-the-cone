@@ -39,16 +39,16 @@ body {
 
 .panel {
   border: 1px solid rgb(18 16 13 / 0.1);
-  border-radius: 2rem;
+  border-radius: 1.6rem;
   background: rgb(255 255 255 / 0.52);
-  padding: clamp(1.25rem, 2vw, 2rem);
-  box-shadow: 0 24px 70px rgb(18 16 13 / 0.08);
+  padding: clamp(1rem, 2vw, 2rem);
+  box-shadow: 0 14px 44px rgb(18 16 13 / 0.07);
   backdrop-filter: blur(16px);
 }
 
 .section-title {
-  font-size: clamp(2rem, 5vw, 3.75rem);
-  line-height: 0.95;
+  font-size: clamp(1.85rem, 5vw, 3.75rem);
+  line-height: 0.98;
   letter-spacing: -0.06em;
   font-weight: 950;
   color: #12100d;
@@ -107,4 +107,11 @@ body {
 @keyframes float-cone {
   0%, 100% { transform: translateY(0) rotate(-1deg); }
   50% { transform: translateY(-8px) rotate(1.5deg); }
+}
+
+@media (min-width: 640px) {
+  .panel {
+    border-radius: 2rem;
+    box-shadow: 0 24px 70px rgb(18 16 13 / 0.08);
+  }
 }

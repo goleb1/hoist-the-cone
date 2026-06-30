@@ -41,17 +41,17 @@ function scoreLine(report: ConeReport) {
 
 function StatCard({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-cream/80 p-5 shadow-sm shadow-black/5 backdrop-blur">
-      <div className="font-mono text-[0.66rem] font-bold uppercase tracking-[0.22em] text-asphalt/55">{label}</div>
-      <div className="mt-3 text-3xl font-black tracking-tight text-asphalt">{value}</div>
-      {note ? <div className="mt-2 text-sm leading-5 text-asphalt/65">{note}</div> : null}
+    <div className="rounded-2xl border border-black/10 bg-cream/80 p-3.5 shadow-sm shadow-black/5 backdrop-blur sm:rounded-3xl sm:p-5">
+      <div className="font-mono text-[0.55rem] font-bold uppercase tracking-[0.18em] text-asphalt/55 sm:text-[0.66rem] sm:tracking-[0.22em]">{label}</div>
+      <div className="mt-2 text-3xl font-black tracking-tight text-asphalt sm:mt-3 sm:text-3xl">{value}</div>
+      {note ? <div className="mt-1 text-xs leading-4 text-asphalt/65 sm:mt-2 sm:text-sm sm:leading-5">{note}</div> : null}
     </div>
   );
 }
 
 function ConeMeter({ score, status }: { score: number; status: ConeStatus }) {
   return (
-    <div className="relative flex aspect-square min-h-64 items-center justify-center overflow-hidden rounded-[2rem] border border-orange-300/30 bg-[radial-gradient(circle_at_50%_35%,rgba(255,106,0,0.22),transparent_34%),linear-gradient(160deg,#1b1712,#060504)] p-6 text-cream shadow-2xl shadow-black/30">
+    <div className="relative hidden aspect-square min-h-64 items-center justify-center overflow-hidden rounded-[2rem] border border-orange-300/30 bg-[radial-gradient(circle_at_50%_35%,rgba(255,106,0,0.22),transparent_34%),linear-gradient(160deg,#1b1712,#060504)] p-6 text-cream shadow-2xl shadow-black/30 lg:flex">
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[repeating-linear-gradient(135deg,rgba(255,106,0,0.22)_0_12px,transparent_12px_24px)] opacity-60" />
       <div className="relative z-10 text-center">
         <div className="mx-auto mb-5 h-28 w-28 cone-shape" aria-hidden="true" />
@@ -79,21 +79,21 @@ function GameCard({ report }: { report: ConeReport }) {
 
   return (
     <section className="panel">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div>
           <Eyebrow>{game.isLive ? "Live traffic" : game.isScheduled ? "Next deployment" : "Latest report"}</Eyebrow>
           <h2 className="section-title mt-2">{scoreLine(report)}</h2>
-          <p className="copy mt-3">{report.explanation}</p>
+          <p className="copy mt-2 sm:mt-3">{report.explanation}</p>
         </div>
-          <div className="rounded-2xl bg-black px-4 py-3 text-right text-cream">
-          <div className="font-mono text-[0.65rem] uppercase tracking-[0.22em] text-orange-200/70">{game.status}</div>
-          <div className="mt-1 text-lg font-black">
+        <div className="rounded-2xl bg-black px-3 py-2.5 text-right text-cream sm:px-4 sm:py-3">
+          <div className="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-orange-200/70 sm:text-[0.65rem] sm:tracking-[0.22em]">{game.status}</div>
+          <div className="mt-1 text-base font-black sm:text-lg">
             {game.isLive ? game.inning ?? "Live" : game.isScheduled ? formatShortFirstPitch(game.date) : game.displayDate}
           </div>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-8 sm:gap-3 lg:grid-cols-4">
         <Mini label="Venue" value={game.venue ?? "—"} />
         <Mini label="Opponent" value={`${game.side === "home" ? "vs" : "at"} ${game.opponent}`} />
         <Mini label="Pirates starter" value={game.probablePiratesPitcher ?? "TBD"} />
@@ -115,14 +115,14 @@ function TrafficReport({ traffic }: { traffic: TrafficMetrics | null }) {
 
   return (
     <section className="panel">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
         <div>
           <Eyebrow>Traffic report</Eyebrow>
           <h2 className="section-title mt-2">Municipal baseball conditions</h2>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-asphalt/60">Runs, baserunners, homers, steals, and other orange-plastic implications.</p>
+        <p className="max-w-sm text-xs leading-5 text-asphalt/60 sm:text-sm sm:leading-6">Runs, baserunners, homers, steals, and other orange-plastic implications.</p>
       </div>
-      <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-7 sm:gap-4 lg:grid-cols-3">
         {metrics.map((metric) => <StatCard key={metric.label} {...metric} />)}
       </div>
     </section>
@@ -134,16 +134,16 @@ function RecentHoists({ report }: { report: ConeReport }) {
     <section className="panel">
       <Eyebrow>Recent hoists</Eyebrow>
       <h2 className="section-title mt-2">Last five completed reports</h2>
-      <div className="mt-6 divide-y divide-black/10 overflow-hidden rounded-3xl border border-black/10 bg-white/45">
+      <div className="mt-4 divide-y divide-black/10 overflow-hidden rounded-2xl border border-black/10 bg-white/45 sm:mt-6 sm:rounded-3xl">
         {report.recentGames.length === 0 ? (
           <p className="copy p-5">No recent games reached the traffic office.</p>
         ) : (
           report.recentGames.map((game) => (
-            <article key={game.gamePk} className="grid gap-4 p-5 md:grid-cols-[7rem_1fr_auto] md:items-center">
-              <div className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-asphalt/55">{game.displayDate}</div>
+            <article key={game.gamePk} className="grid gap-2 p-3.5 sm:gap-4 sm:p-5 md:grid-cols-[7rem_1fr_auto] md:items-center">
+              <div className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-asphalt/55 sm:text-xs">{game.displayDate}</div>
               <div>
                 <h3 className="font-bold text-asphalt">Pirates {game.piratesScore}, {game.opponent} {game.opponentScore}</h3>
-                <p className="mt-1 text-sm leading-6 text-asphalt/65">{game.recap}</p>
+                <p className="mt-1 text-xs leading-5 text-asphalt/65 sm:text-sm sm:leading-6">{game.recap}</p>
               </div>
               <div className={`w-fit rounded-full px-3 py-1.5 font-mono text-[0.65rem] font-black uppercase tracking-[0.15em] ${statusStyles[game.coneStatus]}`}>
                 {game.coneStatus}
@@ -159,7 +159,7 @@ function RecentHoists({ report }: { report: ConeReport }) {
 function StandingsStrip({ report }: { report: ConeReport }) {
   const standings = report.standings;
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-4 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
       <Mini label="Record" value={standings?.record ?? "—"} />
       <Mini label="Streak" value={standings?.streak ?? "—"} />
       <Mini label="Run diff" value={standings?.runDifferential == null ? "—" : `${standings.runDifferential > 0 ? "+" : ""}${standings.runDifferential}`} />
@@ -170,15 +170,15 @@ function StandingsStrip({ report }: { report: ConeReport }) {
 
 function Mini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white/35 px-4 py-3">
-      <div className="font-mono text-[0.62rem] font-bold uppercase tracking-[0.2em] text-asphalt/50">{label}</div>
-      <div className="mt-1 text-sm font-bold leading-5 text-asphalt">{value}</div>
+    <div className="min-w-0 rounded-xl border border-black/10 bg-white/35 px-2.5 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3">
+      <div className="truncate font-mono text-[0.5rem] font-bold uppercase tracking-[0.14em] text-asphalt/50 sm:text-[0.62rem] sm:tracking-[0.2em]">{label}</div>
+      <div className="mt-1 truncate text-sm font-bold leading-5 text-asphalt sm:text-sm">{value}</div>
     </div>
   );
 }
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <div className="font-mono text-xs font-black uppercase tracking-[0.28em] text-orange-600">{children}</div>;
+  return <div className="font-mono text-[0.64rem] font-black uppercase tracking-[0.22em] text-orange-600 sm:text-xs sm:tracking-[0.28em]">{children}</div>;
 }
 
 export default async function Home() {
@@ -187,26 +187,35 @@ export default async function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-cream text-asphalt">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(18,16,13,0.04)_1px,transparent_1px),linear-gradient(rgba(18,16,13,0.04)_1px,transparent_1px)] bg-[size:56px_56px]" />
-      <div className="relative mx-auto w-full max-w-7xl px-5 py-5 sm:px-8 lg:px-10">
-        <header className="flex items-center justify-between gap-4 rounded-full border border-black/10 bg-white/50 px-5 py-3 shadow-sm backdrop-blur">
+      <div className="relative mx-auto w-full max-w-7xl px-3.5 py-4 sm:px-8 sm:py-5 lg:px-10">
+        <header className="flex items-center justify-between gap-3 rounded-[1.75rem] border border-black/10 bg-white/50 px-4 py-3 shadow-sm backdrop-blur sm:gap-4 sm:rounded-full sm:px-5">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 cone-mini" aria-hidden="true" />
+            <div className="h-8 w-8 shrink-0 cone-mini sm:h-9 sm:w-9" aria-hidden="true" />
             <div>
-              <div className="text-sm font-black uppercase tracking-[0.18em]">Hoist the Cone</div>
-              <div className="text-xs font-semibold text-asphalt/55">Unofficial Buccos traffic desk</div>
+              <div className="text-xs font-black uppercase tracking-[0.18em] sm:text-sm">Hoist the Cone</div>
+              <div className="text-[0.68rem] font-semibold text-asphalt/55 sm:text-xs">Unofficial Buccos traffic desk</div>
             </div>
           </div>
           <div className="hidden font-mono text-xs font-bold uppercase tracking-[0.18em] text-asphalt/55 sm:block">Updated {formatGeneratedAt(report.generatedAt)} ET</div>
         </header>
 
-        <section className="grid gap-8 py-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-16">
+        <section className="grid gap-5 py-6 sm:gap-8 sm:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-16">
           <div>
-            <div className="mb-5 inline-flex rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.22em] text-orange-700">The unofficial Buccos traffic report</div>
-            <h1 className="max-w-4xl text-6xl font-black leading-[0.9] tracking-[-0.075em] text-asphalt sm:text-7xl lg:text-8xl">
+            <div className="mb-4 inline-flex rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1.5 font-mono text-[0.62rem] font-black uppercase tracking-[0.18em] text-orange-700 sm:mb-5 sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.22em]">Unofficial Buccos traffic report</div>
+            <h1 className="max-w-4xl text-[3.4rem] font-black leading-[0.86] tracking-[-0.085em] text-asphalt sm:text-7xl lg:text-8xl">
               Cone status: <span className="text-orange-600">{report.status}</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-xl font-semibold leading-8 text-asphalt/70 sm:text-2xl">{report.headline}. {report.explanation}</p>
-            <div className="mt-8">
+            <p className="mt-4 max-w-2xl text-base font-semibold leading-6 text-asphalt/70 sm:mt-6 sm:text-2xl sm:leading-8">{report.headline}. {report.explanation}</p>
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-orange-500/25 bg-asphalt px-4 py-3 text-cream shadow-xl shadow-black/10 lg:hidden">
+              <div>
+                <div className="font-mono text-[0.58rem] font-black uppercase tracking-[0.22em] text-orange-200/75">Cone Index</div>
+                <div className="text-4xl font-black leading-none tracking-[-0.08em]">{report.score}</div>
+              </div>
+              <div className={`rounded-full px-3 py-1.5 text-right font-mono text-[0.62rem] font-black uppercase tracking-[0.14em] ${statusStyles[report.status]}`}>
+                {report.status}
+              </div>
+            </div>
+            <div className="mt-4 sm:mt-8">
               <StandingsStrip report={report} />
             </div>
           </div>
