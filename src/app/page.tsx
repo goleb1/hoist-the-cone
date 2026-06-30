@@ -20,6 +20,14 @@ function formatGeneratedAt(iso: string) {
   }).format(new Date(iso));
 }
 
+function formatShortFirstPitch(iso: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
+
 function scoreLine(report: ConeReport) {
   const game = report.relevantGame;
   if (!game) return "Signal unavailable";
@@ -77,9 +85,11 @@ function GameCard({ report }: { report: ConeReport }) {
           <h2 className="section-title mt-2">{scoreLine(report)}</h2>
           <p className="copy mt-3">{report.explanation}</p>
         </div>
-        <div className="rounded-2xl bg-black px-4 py-3 text-right text-cream">
+          <div className="rounded-2xl bg-black px-4 py-3 text-right text-cream">
           <div className="font-mono text-[0.65rem] uppercase tracking-[0.22em] text-orange-200/70">{game.status}</div>
-          <div className="mt-1 text-lg font-black">{game.inning ?? game.displayDate}</div>
+          <div className="mt-1 text-lg font-black">
+            {game.isLive ? game.inning ?? "Live" : game.isScheduled ? formatShortFirstPitch(game.date) : game.displayDate}
+          </div>
         </div>
       </div>
 
