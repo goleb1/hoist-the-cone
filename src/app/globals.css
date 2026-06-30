@@ -1,26 +1,110 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff4df;
+  --foreground: #12100d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: #fff4df;
+  --color-asphalt: #12100d;
+  --color-cone: #ff6a00;
+  --color-gold: #f6c344;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+::selection {
+  background: #ff6a00;
+  color: #12100d;
+}
+
+.panel {
+  border: 1px solid rgb(18 16 13 / 0.1);
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 0.52);
+  padding: clamp(1.25rem, 2vw, 2rem);
+  box-shadow: 0 24px 70px rgb(18 16 13 / 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.section-title {
+  font-size: clamp(2rem, 5vw, 3.75rem);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  font-weight: 950;
+  color: #12100d;
+}
+
+.copy {
+  color: rgb(18 16 13 / 0.66);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.cone-mini,
+.cone-shape {
+  position: relative;
+  background: linear-gradient(160deg, #ff8a1d 0%, #ff6a00 52%, #c94500 100%);
+  clip-path: polygon(50% 0%, 74% 74%, 92% 74%, 96% 100%, 4% 100%, 8% 74%, 26% 74%);
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.25));
+}
+
+.cone-mini::before,
+.cone-shape::before {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  top: 42%;
+  height: 11%;
+  background: #fff4df;
+  opacity: 0.88;
+  transform: skewY(-4deg);
+}
+
+.cone-mini::after,
+.cone-shape::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: 17%;
+  height: 12%;
+  background: #fff4df;
+  opacity: 0.92;
+  transform: skewY(3deg);
+}
+
+.cone-mini {
+  border-radius: 0.4rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cone-shape {
+    animation: float-cone 5s ease-in-out infinite;
+  }
+}
+
+@keyframes float-cone {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-8px) rotate(1.5deg); }
 }
