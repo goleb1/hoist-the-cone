@@ -123,7 +123,7 @@ function normalizeGame(game: MlbGame): GameSummary {
     isScheduled: abstract === "Preview" || abstract === "Preview" || game.status.detailedState === "Scheduled",
     piratesScore: typeof pirates.score === "number" ? pirates.score : null,
     opponentScore: typeof opponent.score === "number" ? opponent.score : null,
-    inning: game.linescore?.currentInningOrdinal
+    inning: abstract === "Live" && game.linescore?.currentInningOrdinal
       ? `${game.linescore.inningHalf ?? ""} ${game.linescore.currentInningOrdinal}`.trim()
       : undefined,
     probablePiratesPitcher: pirates.probablePitcher?.fullName,
@@ -157,7 +157,7 @@ async function getTrafficMetrics(game: GameSummary | null): Promise<TrafficMetri
   if (!game || game.isScheduled) return null;
 
   try {
-    const boxscore = await fetchJson<BoxscoreResponse>(`${MLB_BASE}/game/${game.gamePk}/boxscore`, game.isLive ? 30 : 3600);
+    const boxscore = await fetchJson<BoxscoreResponse>(`${MLB_BASE}/game/${game.gamePk}/boxscore`, game.isLive ? 15 : 3600);
     const piratesSide = game.side;
     const team = boxscore.teams?.[piratesSide];
     const batting = team?.teamStats?.batting ?? {};
@@ -271,7 +271,7 @@ function statusFromScore(score: number): ConeStatus {
 function makeHeadline(status: ConeStatus, game: GameSummary | null) {
   if (!game) return "Cone staged, signal unavailable";
   if (game.isScheduled) return "Cone staged for first pitch";
-  if (game.isLive) return game.piratesScore && game.opponentScore && game.piratesScore > game.opponentScore ? "Active hoist conditions" : "Cone watch in progress";
+  if (game.isLive) return (game.piratesScore ?? 0) > (game.opponentScore ?? 0) ? "Active hoist conditions" : "Cone watch in progress";
   if ((game.piratesScore ?? 0) > (game.opponentScore ?? 0)) {
     return status === "FULL HOIST" ? "Full hoist authorized" : "Cone up after a Pirates win";
   }
@@ -326,7 +326,7 @@ export async function getConeReport(): Promise<ConeReport> {
     const endDate = etDate(7);
     const schedule = await fetchJson<ScheduleResponse>(
       `${MLB_BASE}/schedule?sportId=1&teamId=${PIRATES_ID}&startDate=${startDate}&endDate=${endDate}&hydrate=probablePitcher,linescore,team`,
-      60,
+      15,
     );
 
     const games = flattenGames(schedule).map(normalizeGame).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
@@ -355,7 +355,7 @@ export async function getConeReport(): Promise<ConeReport> {
       traffic,
       standings,
       recentGames,
-      dataFreshness: relevantGame?.isLive ? "Live feed refreshes about every minute." : "Game data refreshes periodically from MLB Stats API.",
+      dataFreshness: relevantGame?.isLive ? "Live feed auto-refreshes every 15 seconds while this page is open." : "Game data refreshes periodically from MLB Stats API.",
     };
   } catch (error) {
     return {

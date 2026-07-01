@@ -1,10 +1,16 @@
 import { getConeReport } from "@/lib/mlb";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const report = await getConeReport();
+  const isLiveOrPregame = report.state === "live" || report.state === "scheduled";
+
   return Response.json(report, {
     headers: {
-      "Cache-Control": report.state === "live" ? "s-maxage=30, stale-while-revalidate=30" : "s-maxage=300, stale-while-revalidate=900",
+      "Cache-Control": isLiveOrPregame
+        ? "no-store, max-age=0"
+        : "s-maxage=60, stale-while-revalidate=120",
     },
   });
 }
