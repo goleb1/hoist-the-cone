@@ -153,6 +153,11 @@ function pickRelevantGame(games: GameSummary[]) {
   );
 }
 
+function pickNextGame(games: GameSummary[]) {
+  const now = Date.now();
+  return games.find((game) => game.isScheduled && Date.parse(game.date) > now - 30 * 60 * 1000) ?? null;
+}
+
 async function getTrafficMetrics(game: GameSummary | null): Promise<TrafficMetrics | null> {
   if (!game || game.isScheduled) return null;
 
@@ -331,6 +336,7 @@ export async function getConeReport(): Promise<ConeReport> {
 
     const games = flattenGames(schedule).map(normalizeGame).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     const relevantGame = pickRelevantGame(games);
+    const nextGame = pickNextGame(games);
     const [traffic, standings] = await Promise.all([getTrafficMetrics(relevantGame), getStandings()]);
     const score = scoreGame(relevantGame, traffic, standings);
     const status = statusFromScore(score);
@@ -352,6 +358,7 @@ export async function getConeReport(): Promise<ConeReport> {
       headline: makeHeadline(status, relevantGame),
       explanation: makeExplanation(status, relevantGame, traffic),
       relevantGame,
+      nextGame,
       traffic,
       standings,
       recentGames,
@@ -366,6 +373,7 @@ export async function getConeReport(): Promise<ConeReport> {
       headline: "Cone signal interrupted",
       explanation: "The traffic office could not reach the MLB feed. Please remain calm and keep cones legally acquired.",
       relevantGame: null,
+      nextGame: null,
       traffic: null,
       standings: null,
       recentGames: [],

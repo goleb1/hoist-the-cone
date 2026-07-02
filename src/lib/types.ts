@@ -7,6 +7,7 @@ export type ConeStatus =
   | "CONE IN STORAGE";
 
 export type RelevantGameState = "live" | "scheduled" | "final" | "offday" | "error";
+export type PageMode = "live" | "pregame" | "postgame" | "idle" | "error";
 
 export type TeamSide = "home" | "away";
 
@@ -64,6 +65,7 @@ export type ConeReport = {
   headline: string;
   explanation: string;
   relevantGame: GameSummary | null;
+  nextGame: GameSummary | null;
   traffic: TrafficMetrics | null;
   standings: StandingsSummary | null;
   recentGames: Array<GameSummary & { coneScore: number; coneStatus: ConeStatus; recap: string }>;
