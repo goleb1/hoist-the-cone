@@ -200,7 +200,7 @@ function MatchupCard({ game, mode }: { game: GameSummary | null; mode: PageMode 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Eyebrow>{label}</Eyebrow>
-          <h2 className="section-title mt-2">Pirates {game.side === "home" ? "vs" : "at"} {game.opponent}</h2>
+          <h2 className="section-title mt-2">{`Pirates ${game.side === "home" ? "vs" : "at"} ${game.opponent}`}</h2>
           <p className="copy mt-3">{formatGameDate(game.date)} · {game.venue ?? "Venue TBD"}</p>
         </div>
         <div className="rounded-2xl bg-black px-4 py-3 text-right text-cream">
