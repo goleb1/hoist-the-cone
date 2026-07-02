@@ -47,6 +47,24 @@ function scoreLine(game: GameSummary | null) {
   return `Pirates ${game.piratesScore ?? "—"}, ${game.opponent} ${game.opponentScore ?? "—"}`;
 }
 
+function matchupLine(game: GameSummary) {
+  return `Pirates ${game.side === "home" ? "vs" : "at"} ${game.opponent}`;
+}
+
+function gameSiteLabel(game: GameSummary) {
+  return game.side === "home" ? "Home game" : "Road game";
+}
+
+function gameSituation(game: GameSummary) {
+  if (!game.isLive) return game.status;
+  const pieces = [game.inning ?? "Live"];
+  if (typeof game.linescore?.outs === "number") pieces.push(`${game.linescore.outs} out${game.linescore.outs === 1 ? "" : "s"}`);
+  if (typeof game.linescore?.balls === "number" && typeof game.linescore?.strikes === "number") {
+    pieces.push(`${game.linescore.balls}-${game.linescore.strikes} count`);
+  }
+  return pieces.join(" · ");
+}
+
 function easternDateParts(iso: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
@@ -195,23 +213,28 @@ function Hero({ report, mode }: { report: ConeReport; mode: PageMode }) {
 function MatchupCard({ game, mode }: { game: GameSummary | null; mode: PageMode }) {
   if (!game) return null;
   const label = mode === "pregame" ? "Next deployment" : "Upcoming deployment";
+  const pregame = mode === "pregame";
   return (
-    <section className="panel">
+    <section className={`panel ${pregame ? "!border-orange-400/35 !bg-orange-500/10" : ""}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0 flex-1">
           <Eyebrow>{label}</Eyebrow>
-          <h2 className="section-title mt-2">{`Pirates ${game.side === "home" ? "vs" : "at"} ${game.opponent}`}</h2>
+          <h2 className="section-title mt-2">{matchupLine(game)}</h2>
           <p className="copy mt-3">{formatGameDate(game.date)} · {game.venue ?? "Venue TBD"}</p>
         </div>
-        <div className="rounded-2xl bg-black px-4 py-3 text-right text-cream">
+        <div className="rounded-2xl bg-black px-4 py-3 text-left text-cream sm:text-right">
           <div className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-orange-200/70">First pitch</div>
-          <div className="mt-1 text-xl font-black">{formatShortFirstPitch(game.date)}</div>
+          <div className="mt-1 text-2xl font-black">{formatShortFirstPitch(game.date)}</div>
+          <div className="mt-1 text-xs font-semibold text-cream/60">{gameSiteLabel(game)}</div>
         </div>
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <Mini label="Pirates starter" value={game.probablePiratesPitcher ?? "TBD"} />
         <Mini label="Opponent starter" value={game.probableOpponentPitcher ?? "TBD"} />
       </div>
+      <p className="mt-4 text-sm leading-6 text-asphalt/60">
+        {pregame ? "Pregame mode is active. Live traffic opens once first pitch starts moving." : "Next scheduled deployment; full traffic report stays quiet until game data exists."}
+      </p>
     </section>
   );
 }
@@ -219,15 +242,57 @@ function MatchupCard({ game, mode }: { game: GameSummary | null; mode: PageMode 
 function LiveGameCard({ report }: { report: ConeReport }) {
   const game = report.relevantGame;
   if (!game?.isLive) return null;
+  const piratesScore = game.piratesScore ?? "—";
+  const opponentScore = game.opponentScore ?? "—";
   return (
     <section className="panel !border-orange-400/30 !bg-asphalt text-cream">
-      <Eyebrow>Live score</Eyebrow>
-      <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl">{scoreLine(game)}</h2>
-      <p className="mt-3 text-base leading-7 text-cream/75">{game.inning ?? "Live"} · {game.venue ?? "Venue TBD"}</p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <Mini label="Opponent" value={`${game.side === "home" ? "vs" : "at"} ${game.opponent}`} />
-        <Mini label="Pirates starter" value={game.probablePiratesPitcher ?? "TBD"} />
-        <Mini label="Status" value={game.status} />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Eyebrow>Live score</Eyebrow>
+          <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl">{scoreLine(game)}</h2>
+          <p className="mt-3 text-base leading-7 text-cream/75">{gameSituation(game)} · {game.venue ?? "Venue TBD"}</p>
+        </div>
+        <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-cream/10 bg-cream/10 text-center shadow-xl shadow-black/20">
+          <div className="min-w-24 border-r border-cream/10 px-4 py-3">
+            <div className="font-mono text-[0.58rem] uppercase tracking-[0.2em] text-orange-200/75">PIT</div>
+            <div className="text-4xl font-black text-cream">{piratesScore}</div>
+          </div>
+          <div className="min-w-24 px-4 py-3">
+            <div className="font-mono text-[0.58rem] uppercase tracking-[0.2em] text-orange-200/75">{game.opponentAbbrev ?? "OPP"}</div>
+            <div className="text-4xl font-black text-cream">{opponentScore}</div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 grid gap-3 sm:grid-cols-4">
+        <Mini label="Situation" value={gameSituation(game)} inverted />
+        <Mini label="Opponent" value={`${game.side === "home" ? "vs" : "at"} ${game.opponent}`} inverted />
+        <Mini label="Pirates starter" value={game.probablePiratesPitcher ?? "TBD"} inverted />
+        <Mini label="Status" value={game.status} inverted />
+      </div>
+    </section>
+  );
+}
+
+function PostgameSummaryCard({ report }: { report: ConeReport }) {
+  const game = report.recentGames[0];
+  if (!game) return null;
+  const won = (game.piratesScore ?? 0) > (game.opponentScore ?? 0);
+  return (
+    <section className="panel !border-orange-400/25 !bg-white/65">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Eyebrow>Final clearance</Eyebrow>
+          <h2 className="section-title mt-2">{won ? "Cone authorized" : "Cone lowered"}</h2>
+          <p className="copy mt-3">{game.recap}</p>
+        </div>
+        <div className={`rounded-full px-3 py-1.5 font-mono text-[0.65rem] font-black uppercase tracking-[0.15em] ${statusStyles[game.coneStatus]}`}>
+          {game.coneStatus}
+        </div>
+      </div>
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <Mini label="Final" value={scoreLine(game)} truncate={false} />
+        <Mini label="Date" value={game.displayDate} />
+        <Mini label="Venue" value={game.venue ?? "—"} truncate={false} />
       </div>
     </section>
   );
@@ -328,11 +393,11 @@ function StandingsStrip({ report }: { report: ConeReport }) {
   );
 }
 
-function Mini({ label, value }: { label: string; value: string }) {
+function Mini({ label, value, inverted = false, truncate = true }: { label: string; value: string; inverted?: boolean; truncate?: boolean }) {
   return (
-    <div className="min-w-0 rounded-xl border border-black/10 bg-white/35 px-2.5 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3">
-      <div className="truncate font-mono text-[0.5rem] font-bold uppercase tracking-[0.14em] text-asphalt/50 sm:text-[0.62rem] sm:tracking-[0.2em]">{label}</div>
-      <div className="mt-1 truncate text-sm font-bold leading-5 text-asphalt sm:text-sm">{value}</div>
+    <div className={`min-w-0 rounded-xl border px-2.5 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3 ${inverted ? "border-cream/10 bg-cream/10" : "border-black/10 bg-white/35"}`}>
+      <div className={`truncate font-mono text-[0.5rem] font-bold uppercase tracking-[0.14em] sm:text-[0.62rem] sm:tracking-[0.2em] ${inverted ? "text-cream/50" : "text-asphalt/50"}`}>{label}</div>
+      <div className={`mt-1 text-sm font-bold leading-5 sm:text-sm ${truncate ? "truncate" : ""} ${inverted ? "text-cream" : "text-asphalt"}`}>{value}</div>
     </div>
   );
 }
@@ -435,10 +500,15 @@ export function LiveConeDashboard({ initialReport }: { initialReport: ConeReport
             <TrafficReport traffic={report.traffic} mode={mode} />
           </div>
         ) : mode === "postgame" ? (
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <TrafficReport traffic={report.traffic} mode={mode} />
-            <MatchupCard game={report.nextGame} mode="idle" />
-          </div>
+          <>
+            <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+              <PostgameSummaryCard report={report} />
+              <TrafficReport traffic={report.traffic} mode={mode} />
+            </div>
+            <div className="mt-6">
+              <MatchupCard game={report.nextGame} mode="idle" />
+            </div>
+          </>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_0.88fr]">
             <MatchupCard game={report.nextGame} mode={mode} />
