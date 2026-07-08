@@ -12,6 +12,33 @@ const statusStyles: Record<ConeStatus, string> = {
   "CONE IN STORAGE": "bg-black text-orange-200",
 };
 
+const PIRATES_NAME = "Pittsburgh Pirates";
+const PIRATES_COLORS = { primary: "#FDB827", secondary: "#27251F" };
+const TEAM_COLORS: Record<number, { primary: string; secondary: string }> = {
+  120: { primary: "#AB0003", secondary: "#14225A" }, // Washington Nationals
+  144: { primary: "#CE1141", secondary: "#13274F" }, // Atlanta Braves
+  112: { primary: "#0E3386", secondary: "#CC3433" }, // Chicago Cubs
+  113: { primary: "#C6011F", secondary: "#000000" }, // Cincinnati Reds
+  138: { primary: "#C41E3A", secondary: "#0C2340" }, // St. Louis Cardinals
+  158: { primary: "#FFC52F", secondary: "#12284B" }, // Milwaukee Brewers
+};
+
+function opponentColors(game: GameSummary) {
+  return game.opponentId ? TEAM_COLORS[game.opponentId] : undefined;
+}
+
+function TeamChip({ name, colors = PIRATES_COLORS }: { name: string; colors?: { primary: string; secondary: string } }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/55 px-2.5 py-1 text-xs font-black text-asphalt shadow-sm">
+      <span className="grid h-4 w-4 overflow-hidden rounded-full border border-black/15" aria-hidden="true">
+        <span style={{ backgroundColor: colors.primary }} />
+        <span style={{ backgroundColor: colors.secondary }} />
+      </span>
+      {name}
+    </span>
+  );
+}
+
 function formatGeneratedAt(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
@@ -43,12 +70,12 @@ function formatGameDate(iso: string) {
 
 function scoreLine(game: GameSummary | null) {
   if (!game) return "Signal unavailable";
-  if (game.isScheduled) return `${game.side === "home" ? "vs" : "at"} ${game.opponent}`;
-  return `Pirates ${game.piratesScore ?? "—"}, ${game.opponent} ${game.opponentScore ?? "—"}`;
+  if (game.isScheduled) return `${PIRATES_NAME} ${game.side === "home" ? "vs" : "at"} ${game.opponent}`;
+  return `${PIRATES_NAME} ${game.piratesScore ?? "—"}, ${game.opponent} ${game.opponentScore ?? "—"}`;
 }
 
 function matchupLine(game: GameSummary) {
-  return `Pirates ${game.side === "home" ? "vs" : "at"} ${game.opponent}`;
+  return `${PIRATES_NAME} ${game.side === "home" ? "vs" : "at"} ${game.opponent}`;
 }
 
 function gameSiteLabel(game: GameSummary) {
@@ -166,7 +193,7 @@ function Hero({ report, mode }: { report: ConeReport; mode: PageMode }) {
   const title = liveGame
     ? scoreLine(liveGame)
     : nextGame
-      ? `Pirates ${nextGame.side === "home" ? "vs" : "at"} ${nextGame.opponent}`
+      ? matchupLine(nextGame)
       : lastFinal
         ? scoreLine(lastFinal)
         : `Cone status: ${report.status}`;
@@ -178,7 +205,7 @@ function Hero({ report, mode }: { report: ConeReport; mode: PageMode }) {
       : lastFinal
         ? lastFinal.recap
         : report.nextGame
-          ? `No active deployment. Next game: Pirates ${report.nextGame.side === "home" ? "vs" : "at"} ${report.nextGame.opponent}, ${formatGameDate(report.nextGame.date)}.`
+          ? `No active deployment. Next game: ${matchupLine(report.nextGame)}, ${formatGameDate(report.nextGame.date)}.`
           : report.explanation;
 
   return (
@@ -220,6 +247,10 @@ function MatchupCard({ game, mode }: { game: GameSummary | null; mode: PageMode 
         <div className="min-w-0 flex-1">
           <Eyebrow>{label}</Eyebrow>
           <h2 className="section-title mt-2">{matchupLine(game)}</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <TeamChip name={PIRATES_NAME} />
+            <TeamChip name={game.opponent} colors={opponentColors(game)} />
+          </div>
           <p className="copy mt-3">{formatGameDate(game.date)} · {game.venue ?? "Venue TBD"}</p>
         </div>
         <div className="rounded-2xl bg-black px-4 py-3 text-left text-cream sm:text-right">
@@ -232,9 +263,9 @@ function MatchupCard({ game, mode }: { game: GameSummary | null; mode: PageMode 
         <Mini label="Pirates starter" value={game.probablePiratesPitcher ?? "TBD"} />
         <Mini label="Opponent starter" value={game.probableOpponentPitcher ?? "TBD"} />
       </div>
-      <p className="mt-4 text-sm leading-6 text-asphalt/60">
-        {pregame ? "Pregame mode is active. Live traffic opens once first pitch starts moving." : "Next scheduled deployment; full traffic report stays quiet until game data exists."}
-      </p>
+      {pregame ? (
+        <p className="mt-4 text-sm leading-6 text-asphalt/60">Pregame mode is active. Live traffic opens once first pitch starts moving.</p>
+      ) : null}
     </section>
   );
 }
@@ -250,6 +281,10 @@ function LiveGameCard({ report }: { report: ConeReport }) {
         <div>
           <Eyebrow>Live score</Eyebrow>
           <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl">{scoreLine(game)}</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <TeamChip name={PIRATES_NAME} />
+            <TeamChip name={game.opponent} colors={opponentColors(game)} />
+          </div>
           <p className="mt-3 text-base leading-7 text-cream/75">{gameSituation(game)} · {game.venue ?? "Venue TBD"}</p>
         </div>
         <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-cream/10 bg-cream/10 text-center shadow-xl shadow-black/20">
@@ -357,7 +392,7 @@ function RecentHoists({ report }: { report: ConeReport }) {
           <Eyebrow>Recent hoists</Eyebrow>
           <h2 className="section-title mt-2">Last five reports</h2>
         </div>
-        <p className="max-w-md text-sm leading-6 text-asphalt/60">The always-on cone log. Season highs and deeper filters belong here next.</p>
+        <p className="max-w-md text-sm leading-6 text-asphalt/60">Completed cone calls from the latest Pirates traffic reports.</p>
       </div>
       <div className="mt-4 divide-y divide-black/10 overflow-hidden rounded-2xl border border-black/10 bg-white/45 sm:mt-6 sm:rounded-3xl">
         {report.recentGames.length === 0 ? (
@@ -411,7 +446,7 @@ function LiveRefreshStrip({ report, mode, lastCheckedAt, refreshError }: { repor
 
   const game = mode === "live" ? report.relevantGame : report.nextGame;
   const score = game && game.piratesScore != null && game.opponentScore != null
-    ? `Pirates ${game.piratesScore} · ${game.opponentAbbrev ?? game.opponent} ${game.opponentScore}`
+    ? `${PIRATES_NAME} ${game.piratesScore} · ${game.opponentAbbrev ?? game.opponent} ${game.opponentScore}`
     : game ? `First pitch ${formatShortFirstPitch(game.date)}` : "Schedule pending";
 
   return (

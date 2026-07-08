@@ -16,6 +16,7 @@ export type GameSummary = {
   date: string;
   displayDate: string;
   opponent: string;
+  opponentId?: number;
   opponentAbbrev?: string;
   venue?: string;
   side: TeamSide;
