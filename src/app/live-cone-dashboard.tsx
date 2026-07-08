@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { ConeReport, ConeStatus, GameSummary, PageMode, TrafficMetrics } from "@/lib/types";
 
 const statusStyles: Record<ConeStatus, string> = {
@@ -27,16 +27,38 @@ function opponentColors(game: GameSummary) {
   return game.opponentId ? TEAM_COLORS[game.opponentId] : undefined;
 }
 
-function TeamChip({ name, colors = PIRATES_COLORS }: { name: string; colors?: { primary: string; secondary: string } }) {
+function TeamName({ name, colors = PIRATES_COLORS, className = "" }: { name: string; colors?: { primary: string; secondary: string }; className?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/55 px-2.5 py-1 text-xs font-black text-asphalt shadow-sm">
-      <span className="grid h-4 w-4 overflow-hidden rounded-full border border-black/15" aria-hidden="true">
-        <span style={{ backgroundColor: colors.primary }} />
-        <span style={{ backgroundColor: colors.secondary }} />
-      </span>
+    <span
+      className={`team-name-accent ${className}`}
+      style={{
+        "--team-primary": colors.primary,
+        "--team-secondary": colors.secondary,
+      } as CSSProperties}
+    >
       {name}
     </span>
   );
+}
+
+function MatchupLine({ game }: { game: GameSummary }) {
+  return (
+    <>
+      <TeamName name={PIRATES_NAME} />{"\u00A0"}{game.side === "home" ? "vs" : "at"}{"\u00A0"}<TeamName name={game.opponent} colors={opponentColors(game)} />
+    </>
+  );
+}
+
+function ScoreLine({ game }: { game: GameSummary }) {
+  return (
+    <>
+      <TeamName name={PIRATES_NAME} />{"\u00A0"}{game.piratesScore ?? "—"}, <TeamName name={game.opponent} colors={opponentColors(game)} />{"\u00A0"}{game.opponentScore ?? "—"}
+    </>
+  );
+}
+
+function GameLine({ game }: { game: GameSummary }) {
+  return game.isScheduled ? <MatchupLine game={game} /> : <ScoreLine game={game} />;
 }
 
 function formatGeneratedAt(iso: string) {
@@ -191,11 +213,11 @@ function Hero({ report, mode }: { report: ConeReport; mode: PageMode }) {
   const nextGame = mode === "pregame" ? report.nextGame : null;
 
   const title = liveGame
-    ? scoreLine(liveGame)
+    ? <GameLine game={liveGame} />
     : nextGame
-      ? matchupLine(nextGame)
+      ? <MatchupLine game={nextGame} />
       : lastFinal
-        ? scoreLine(lastFinal)
+        ? <GameLine game={lastFinal} />
         : `Cone status: ${report.status}`;
 
   const body = liveGame
@@ -246,11 +268,7 @@ function MatchupCard({ game, mode }: { game: GameSummary | null; mode: PageMode 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <Eyebrow>{label}</Eyebrow>
-          <h2 className="section-title mt-2">{matchupLine(game)}</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <TeamChip name={PIRATES_NAME} />
-            <TeamChip name={game.opponent} colors={opponentColors(game)} />
-          </div>
+          <h2 className="section-title mt-2"><MatchupLine game={game} /></h2>
           <p className="copy mt-3">{formatGameDate(game.date)} · {game.venue ?? "Venue TBD"}</p>
         </div>
         <div className="rounded-2xl bg-black px-4 py-3 text-left text-cream sm:text-right">
@@ -280,11 +298,7 @@ function LiveGameCard({ report }: { report: ConeReport }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Eyebrow>Live score</Eyebrow>
-          <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl">{scoreLine(game)}</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <TeamChip name={PIRATES_NAME} />
-            <TeamChip name={game.opponent} colors={opponentColors(game)} />
-          </div>
+          <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl"><GameLine game={game} /></h2>
           <p className="mt-3 text-base leading-7 text-cream/75">{gameSituation(game)} · {game.venue ?? "Venue TBD"}</p>
         </div>
         <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-cream/10 bg-cream/10 text-center shadow-xl shadow-black/20">
@@ -339,7 +353,7 @@ function LastResultCard({ report, compact = false }: { report: ConeReport; compa
   return (
     <section className="panel">
       <Eyebrow>{compact ? "Last result" : "Postgame cone report"}</Eyebrow>
-      <h2 className="section-title mt-2">{scoreLine(game)}</h2>
+      <h2 className="section-title mt-2"><GameLine game={game} /></h2>
       <p className="copy mt-3">{game.recap}</p>
       <div className={`mt-5 inline-flex rounded-full px-3 py-1.5 font-mono text-[0.65rem] font-black uppercase tracking-[0.15em] ${statusStyles[game.coneStatus]}`}>
         {game.coneStatus}
@@ -402,7 +416,7 @@ function RecentHoists({ report }: { report: ConeReport }) {
             <article key={game.gamePk} className="grid gap-2 p-3.5 sm:gap-4 sm:p-5 md:grid-cols-[7rem_1fr_auto] md:items-center">
               <div className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-asphalt/55 sm:text-xs">{game.displayDate}</div>
               <div>
-                <h3 className="font-bold text-asphalt">{scoreLine(game)}</h3>
+                <h3 className="font-bold text-asphalt"><GameLine game={game} /></h3>
                 <p className="mt-1 text-xs leading-5 text-asphalt/65 sm:text-sm sm:leading-6">{game.recap}</p>
               </div>
               <div className={`w-fit rounded-full px-3 py-1.5 font-mono text-[0.65rem] font-black uppercase tracking-[0.15em] ${statusStyles[game.coneStatus]}`}>
