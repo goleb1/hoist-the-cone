@@ -17,6 +17,7 @@ const PIRATES_COLORS = { primary: "#FDB827", secondary: "#27251F" };
 const TEAM_COLORS: Record<number, { primary: string; secondary: string }> = {
   120: { primary: "#AB0003", secondary: "#14225A" }, // Washington Nationals
   144: { primary: "#CE1141", secondary: "#13274F" }, // Atlanta Braves
+  143: { primary: "#E81828", secondary: "#FFFFFF" }, // Philadelphia Phillies
   112: { primary: "#0E3386", secondary: "#CC3433" }, // Chicago Cubs
   113: { primary: "#C6011F", secondary: "#000000" }, // Cincinnati Reds
   138: { primary: "#C41E3A", secondary: "#0C2340" }, // St. Louis Cardinals
@@ -27,7 +28,9 @@ function opponentColors(game: GameSummary) {
   return game.opponentId ? TEAM_COLORS[game.opponentId] : undefined;
 }
 
-function TeamName({ name, colors = PIRATES_COLORS, className = "" }: { name: string; colors?: { primary: string; secondary: string }; className?: string }) {
+function TeamName({ name, colors, className = "" }: { name: string; colors?: { primary: string; secondary: string }; className?: string }) {
+  if (!colors) return <span className={className}>{name}</span>;
+
   return (
     <span
       className={`team-name-accent ${className}`}
@@ -44,7 +47,7 @@ function TeamName({ name, colors = PIRATES_COLORS, className = "" }: { name: str
 function MatchupLine({ game }: { game: GameSummary }) {
   return (
     <>
-      <TeamName name={PIRATES_NAME} />{"\u00A0"}{game.side === "home" ? "vs" : "at"}{"\u00A0"}<TeamName name={game.opponent} colors={opponentColors(game)} />
+      <TeamName name={PIRATES_NAME} colors={PIRATES_COLORS} />{"\u00A0"}{game.side === "home" ? "vs" : "at"}{"\u00A0"}<TeamName name={game.opponent} colors={opponentColors(game)} />
     </>
   );
 }
@@ -52,7 +55,7 @@ function MatchupLine({ game }: { game: GameSummary }) {
 function ScoreLine({ game }: { game: GameSummary }) {
   return (
     <>
-      <TeamName name={PIRATES_NAME} />{"\u00A0"}{game.piratesScore ?? "—"}, <TeamName name={game.opponent} colors={opponentColors(game)} />{"\u00A0"}{game.opponentScore ?? "—"}
+      <TeamName name={PIRATES_NAME} colors={PIRATES_COLORS} />{"\u00A0"}{game.piratesScore ?? "—"}, <TeamName name={game.opponent} colors={opponentColors(game)} />{"\u00A0"}{game.opponentScore ?? "—"}
     </>
   );
 }
