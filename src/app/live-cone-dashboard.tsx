@@ -13,16 +13,40 @@ const statusStyles: Record<ConeStatus, string> = {
 };
 
 const PIRATES_NAME = "Pittsburgh Pirates";
-const PIRATES_COLORS = { primary: "#FDB827", secondary: "#27251F" };
-const TEAM_COLORS: Record<number, { primary: string; secondary: string }> = {
-  120: { primary: "#AB0003", secondary: "#14225A" }, // Washington Nationals
-  144: { primary: "#CE1141", secondary: "#13274F" }, // Atlanta Braves
-  143: { primary: "#E81828", secondary: "#FFFFFF" }, // Philadelphia Phillies
+type TeamColors = { primary: string; secondary: string };
+const TEAM_COLORS: Record<number, TeamColors> = {
+  108: { primary: "#BA0021", secondary: "#003263" }, // Los Angeles Angels
+  109: { primary: "#A71930", secondary: "#30CED8" }, // Arizona Diamondbacks
+  110: { primary: "#DF4601", secondary: "#000000" }, // Baltimore Orioles
+  111: { primary: "#BD3039", secondary: "#0C2340" }, // Boston Red Sox
   112: { primary: "#0E3386", secondary: "#CC3433" }, // Chicago Cubs
   113: { primary: "#C6011F", secondary: "#000000" }, // Cincinnati Reds
+  114: { primary: "#E50022", secondary: "#00385D" }, // Cleveland Guardians
+  115: { primary: "#33006F", secondary: "#C4CED4" }, // Colorado Rockies
+  116: { primary: "#0C2340", secondary: "#FA4616" }, // Detroit Tigers
+  117: { primary: "#002D62", secondary: "#EB6E1F" }, // Houston Astros
+  118: { primary: "#004687", secondary: "#BD9B60" }, // Kansas City Royals
+  119: { primary: "#005A9C", secondary: "#EF3E42" }, // Los Angeles Dodgers
+  120: { primary: "#AB0003", secondary: "#14225A" }, // Washington Nationals
+  121: { primary: "#002D72", secondary: "#FF5910" }, // New York Mets
+  133: { primary: "#003831", secondary: "#EFB21E" }, // Athletics
+  134: { primary: "#FDB827", secondary: "#27251F" }, // Pittsburgh Pirates
+  135: { primary: "#2F241D", secondary: "#FFC425" }, // San Diego Padres
+  136: { primary: "#0C2C56", secondary: "#005C5C" }, // Seattle Mariners
+  137: { primary: "#FD5A1E", secondary: "#27251F" }, // San Francisco Giants
   138: { primary: "#C41E3A", secondary: "#0C2340" }, // St. Louis Cardinals
+  139: { primary: "#092C5C", secondary: "#8FBCE6" }, // Tampa Bay Rays
+  140: { primary: "#003278", secondary: "#C0111F" }, // Texas Rangers
+  141: { primary: "#134A8E", secondary: "#E8291C" }, // Toronto Blue Jays
+  142: { primary: "#002B5C", secondary: "#D31145" }, // Minnesota Twins
+  143: { primary: "#E81828", secondary: "#FFFFFF" }, // Philadelphia Phillies
+  144: { primary: "#CE1141", secondary: "#13274F" }, // Atlanta Braves
+  145: { primary: "#27251F", secondary: "#C4CED4" }, // Chicago White Sox
+  146: { primary: "#00A3E0", secondary: "#EF3340" }, // Miami Marlins
+  147: { primary: "#0C2340", secondary: "#C4CED4" }, // New York Yankees
   158: { primary: "#FFC52F", secondary: "#12284B" }, // Milwaukee Brewers
 };
+const PIRATES_COLORS = TEAM_COLORS[134];
 
 function opponentColors(game: GameSummary) {
   return game.opponentId ? TEAM_COLORS[game.opponentId] : undefined;
