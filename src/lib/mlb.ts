@@ -84,6 +84,42 @@ function formatFirstPitch(dateIso: string) {
   }).format(new Date(dateIso));
 }
 
+function easternDateParts(dateIso: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(dateIso));
+
+  return {
+    year: Number(parts.find((part) => part.type === "year")?.value),
+    month: Number(parts.find((part) => part.type === "month")?.value),
+    day: Number(parts.find((part) => part.type === "day")?.value),
+  };
+}
+
+function timeZoneOffsetMs(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+  const value = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  const zonedAsUtc = Date.UTC(value("year"), value("month") - 1, value("day"), value("hour"), value("minute"), value("second"));
+  return zonedAsUtc - date.getTime();
+}
+
+function easternTimeToUtcMs(year: number, month: number, day: number, hour: number) {
+  const utcGuess = Date.UTC(year, month - 1, day, hour);
+  return utcGuess - timeZoneOffsetMs(new Date(utcGuess), "America/New_York");
+}
+
 async function fetchJson<T>(url: string, revalidate = 60): Promise<T> {
   const response = await fetch(url, {
     next: { revalidate },
@@ -113,6 +149,7 @@ function normalizeGame(game: MlbGame): GameSummary {
     date: game.gameDate,
     displayDate: formatDisplayDate(game.gameDate),
     opponent: opponent.team.name,
+    opponentId: opponent.team.id,
     opponentAbbrev: opponent.team.abbreviation,
     venue: game.venue?.name,
     side: piratesSide,
@@ -140,17 +177,25 @@ function normalizeGame(game: MlbGame): GameSummary {
 }
 
 function pickRelevantGame(games: GameSummary[]) {
-  const today = etDate();
-  const todayGames = games.filter((game) => game.date.slice(0, 10) === today);
+  const now = Date.now();
+  const nextGame = pickNextGame(games);
+  const recentFinal = [...games].reverse().find((game) => game.isFinal) ?? null;
 
-  return (
-    todayGames.find((game) => game.isLive) ??
-    todayGames.find((game) => game.isScheduled) ??
-    todayGames.find((game) => game.isFinal) ??
-    [...games].reverse().find((game) => game.isFinal) ??
-    games.find((game) => game.isScheduled) ??
-    null
-  );
+  const liveGame = games.find((game) => game.isLive);
+  if (liveGame) return liveGame;
+
+  if (nextGame?.isScheduled) {
+    const startsInMs = Date.parse(nextGame.date) - now;
+    if (startsInMs > 0 && startsInMs <= 4 * 60 * 60 * 1000) return nextGame;
+  }
+
+  if (recentFinal) {
+    const { year, month, day } = easternDateParts(recentFinal.date);
+    const cutoffMs = easternTimeToUtcMs(year, month, day + 1, 11);
+    if (now < cutoffMs) return recentFinal;
+  }
+
+  return nextGame ?? recentFinal ?? null;
 }
 
 function pickNextGame(games: GameSummary[]) {
@@ -294,26 +339,26 @@ function makeExplanation(status: ConeStatus, game: GameSummary | null, traffic: 
   const result = `${piratesScore}-${opponentScore}`;
 
   if (game.isLive) {
-    if (piratesScore > opponentScore) return `Pirates lead ${result}. Traffic is moving, but the cone office is not issuing final permits yet.`;
-    if (piratesScore === opponentScore) return `Pirates and ${game.opponent} are tied ${result}. Cone watch remains active.`;
-    return `Pirates trail ${result}. Traffic backed up, but lanes remain technically open.`;
+    if (piratesScore > opponentScore) return `Pittsburgh Pirates lead ${result}. Traffic is moving, but the cone office is not issuing final permits yet.`;
+    if (piratesScore === opponentScore) return `Pittsburgh Pirates and ${game.opponent} are tied ${result}. Cone watch remains active.`;
+    return `Pittsburgh Pirates trail ${result}. Traffic backed up, but lanes remain technically open.`;
   }
 
   if (piratesScore > opponentScore) {
-    if (status === "FULL HOIST") return `Pirates beat ${game.opponent} ${result}. Traffic cleared with authority. Cone deployment authorized.`;
-    return `Pirates beat ${game.opponent} ${result}. Not a masterpiece, but the lane reopened. Cone up.`;
+    if (status === "FULL HOIST") return `Pittsburgh Pirates beat ${game.opponent} ${result}. Traffic cleared with authority. Cone deployment authorized.`;
+    return `Pittsburgh Pirates beat ${game.opponent} ${result}. Not a masterpiece, but the lane reopened. Cone up.`;
   }
 
   if ((traffic?.runs ?? piratesScore) >= 5) {
-    return `Pirates lost ${result}, despite moving traffic. The cone does not reward theoretical runs.`;
+    return `Pittsburgh Pirates lost ${result}, despite moving traffic. The cone does not reward theoretical runs.`;
   }
-  return `Pirates lost ${result}. Traffic backed up. Cone lowered pending further review.`;
+  return `Pittsburgh Pirates lost ${result}. Traffic backed up. Cone lowered pending further review.`;
 }
 
 function recapGame(game: GameSummary, score: number) {
   const piratesScore = game.piratesScore ?? 0;
   const opponentScore = game.opponentScore ?? 0;
-  const result = `Pirates ${piratesScore}, ${game.opponent} ${opponentScore}`;
+  const result = `Pittsburgh Pirates ${piratesScore}, ${game.opponent} ${opponentScore}`;
 
   if (piratesScore > opponentScore) {
     if (score >= 80) return `${result}. Traffic cleared, cone elevated, paperwork approved.`;
