@@ -239,8 +239,9 @@ function Hero({ report, mode }: { report: ConeReport; mode: PageMode }) {
   const lastFinal = mode === "postgame" ? report.recentGames[0] : null;
   const nextGame = mode === "pregame" ? report.nextGame : null;
 
+  // Live mode contract: hero sells the cone verdict, refresh shows freshness, LiveGameCard owns the scoreboard.
   const title = liveGame
-    ? <GameLine game={liveGame} />
+    ? report.headline
     : nextGame
       ? <MatchupLine game={nextGame} />
       : lastFinal
@@ -248,7 +249,7 @@ function Hero({ report, mode }: { report: ConeReport; mode: PageMode }) {
         : `Cone status: ${report.status}`;
 
   const body = liveGame
-    ? `${liveGame.inning ?? "Live"}. ${report.explanation}`
+    ? `${gameSituation(liveGame)}. ${liveGame.side === "home" ? "PNC Park traffic desk is live." : "Road traffic desk is live."}`
     : nextGame
       ? `First pitch ${formatGameDate(nextGame.date)}. Cone staged, starters checked, traffic report pending.`
       : lastFinal
@@ -324,8 +325,8 @@ function LiveGameCard({ report }: { report: ConeReport }) {
     <section className="panel !border-orange-400/30 !bg-asphalt text-cream">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Eyebrow>Live score</Eyebrow>
-          <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl"><GameLine game={game} /></h2>
+          <Eyebrow>Live game</Eyebrow>
+          <h2 className="mt-2 text-4xl font-black leading-none tracking-[-0.06em] text-cream sm:text-6xl"><MatchupLine game={game} /></h2>
           <p className="mt-3 text-base leading-7 text-cream/75">{gameSituation(game)} · {game.venue ?? "Venue TBD"}</p>
         </div>
         <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-cream/10 bg-cream/10 text-center shadow-xl shadow-black/20">
@@ -339,8 +340,7 @@ function LiveGameCard({ report }: { report: ConeReport }) {
           </div>
         </div>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-4">
-        <Mini label="Situation" value={gameSituation(game)} inverted />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <Mini label="Opponent" value={`${game.side === "home" ? "vs" : "at"} ${game.opponent}`} inverted />
         <Mini label="Pirates starter" value={game.probablePiratesPitcher ?? "TBD"} inverted />
         <Mini label="Status" value={game.status} inverted />
@@ -486,8 +486,8 @@ function LiveRefreshStrip({ report, mode, lastCheckedAt, refreshError }: { repor
   if (mode !== "live" && mode !== "pregame") return null;
 
   const game = mode === "live" ? report.relevantGame : report.nextGame;
-  const score = game && game.piratesScore != null && game.opponentScore != null
-    ? `${PIRATES_NAME} ${game.piratesScore} · ${game.opponentAbbrev ?? game.opponent} ${game.opponentScore}`
+  const statusLine = mode === "live"
+    ? `Live feed active${game?.inning ? ` · ${game.inning}` : ""}`
     : game ? `First pitch ${formatShortFirstPitch(game.date)}` : "Schedule pending";
 
   return (
@@ -497,10 +497,10 @@ function LiveRefreshStrip({ report, mode, lastCheckedAt, refreshError }: { repor
           <span className={`h-3 w-3 shrink-0 rounded-full ${mode === "live" ? "animate-pulse bg-orange-500 shadow-[0_0_18px_rgba(255,106,0,0.9)]" : "bg-orange-500"}`} />
           <div className="min-w-0">
             <div className={`font-mono text-[0.62rem] font-black uppercase tracking-[0.22em] ${mode === "live" ? "text-orange-200" : "text-orange-700"}`}>
-              {mode === "live" ? "Live game control" : "Pregame watch"}
+              {mode === "live" ? "Live feed" : "Pregame watch"}
             </div>
             <div className="mt-1 truncate text-sm font-black sm:text-base">
-              {mode === "live" ? `${score}${game?.inning ? ` · ${game.inning}` : ""}` : score}
+              {statusLine}
             </div>
           </div>
         </div>
